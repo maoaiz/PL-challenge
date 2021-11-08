@@ -21,20 +21,21 @@ class VendingMachine:
 
     def __init__(self):
         self.stock = []
-        self._accept_orders = False
+
+    def _accept_orders(self):
+        return bool(self.stock)  # or len(self.stock) > 0
 
     def add_item(self, item):
         self.stock.append(item)
-        self._accept_orders = True
 
     def buy_item(self):
-        if self._accept_orders:
+        if self._accept_orders():
             return self.stock.pop(0)
         else:
             raise OutOfOrderError()
 
     def __str__(self):
-        return "Insert coin" if self._accept_orders else "Out Of Order"
+        return "Insert coin" if self._accept_orders() else "Out Of Order"
 
 
 class VendingMachineTests(unittest.TestCase):
@@ -61,7 +62,10 @@ class VendingMachineTests(unittest.TestCase):
 
         Write the test to reproduce this error and fix the VendingMachine code
         """
-        pass
+        machine = VendingMachine()
+
+        with self.assertRaises(OutOfOrderError):
+            machine.buy_item()
 
 
 if __name__ == '__main__':
