@@ -37,6 +37,16 @@ class DivisionTests(unittest.TestCase):
         with self.assertRaises(ZeroDivisionError):
             10 / 0
 
+    def test_division_by_zero2(self):
+
+        with self.assertRaises(ZeroDivisionError) as e:
+            10 / 0
+
+        self.assertEqual(
+            'division by zero',
+            str(e.exception)
+        )
+
 
 if __name__ == '__main__':
     unittest.main()
