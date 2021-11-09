@@ -16,7 +16,9 @@ def init(conn):
               "id INTEGER PRIMARY KEY, "
               "code TEXT, "
               "name TEXT)")
-    c.execute("CREATE INDEX country_id_idx ON countries (id);")
+
+    # name is used in an ORDER BY, it is a good practice to have an index
+    c.execute("CREATE INDEX name_idx ON users (name);")
 
     c.execute("INSERT INTO countries VALUES (1, 'US', 'United States')")
     c.execute("INSERT INTO countries VALUES (2, 'MX', 'Mexico')")
@@ -30,7 +32,8 @@ def init(conn):
               "name TEXT, "
               "country_id INTEGER, "
               "FOREIGN KEY(country_id) REFERENCES countries(id))")
-    c.execute("CREATE INDEX users_id_idx ON users (id);")
+
+    # country_id is an FK, it is a good practice to have an index
     c.execute("CREATE INDEX country_id_1_idx ON users (country_id);")
 
     c.execute("INSERT INTO users VALUES (1, 'Jenci Anshel', 1)")
@@ -52,9 +55,6 @@ def init(conn):
               "sku TEXT, "
               "name TEXT)")
 
-    # items are selected by the id, an index must be created
-    c.execute("CREATE INDEX items_id_idx ON items (id);")
-
     c.execute("INSERT INTO items VALUES (1, 'jeab', 'Jeans - black')")
     c.execute("INSERT INTO items VALUES (2, 'jeap', 'Jeans - pink')")
     c.execute("INSERT INTO items VALUES (3, 'shor', 'Shoes - red')")
@@ -70,9 +70,11 @@ def init(conn):
               "datetime STRING, "
               "FOREIGN KEY(user_id) REFERENCES users(id), "
               "FOREIGN KEY(item_id) REFERENCES items(id))")
-    c.execute("CREATE INDEX orders_id_idx ON orders (id);")
+
+    # user_id and item_id are FKs, is a good idea to have indexes
     c.execute("CREATE INDEX user_id_1_idx ON orders (user_id);")
     c.execute("CREATE INDEX item_id_1_idx ON orders (item_id);")
+
     c.execute("INSERT INTO orders VALUES (1, 1, 1, '2017-01-02 11:34:59')")
     c.execute("INSERT INTO orders VALUES (2, 1, 3, '2017-01-09 18:02:06')")
     c.execute("INSERT INTO orders VALUES (3, 1, 5, '2017-01-14 21:38:19')")
@@ -130,7 +132,7 @@ def query_users_who_bought_nothing(conn):
         LEFT JOIN items ON items.id = orders.item_id
         LEFT JOIN countries ON countries.id = users.country_id
         WHERE items.id is null
-        ORDER BY users.id, users.name, countries.name
+        ORDER BY users.id
 
     """)
     return c.fetchall()
