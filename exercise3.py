@@ -16,6 +16,8 @@ def init(conn):
               "id INTEGER PRIMARY KEY, "
               "code TEXT, "
               "name TEXT)")
+    c.execute("CREATE INDEX country_id_idx ON countries (id);")
+
     c.execute("INSERT INTO countries VALUES (1, 'US', 'United States')")
     c.execute("INSERT INTO countries VALUES (2, 'MX', 'Mexico')")
     c.execute("INSERT INTO countries VALUES (3, 'CA', 'Canada')")
@@ -28,6 +30,9 @@ def init(conn):
               "name TEXT, "
               "country_id INTEGER, "
               "FOREIGN KEY(country_id) REFERENCES countries(id))")
+    c.execute("CREATE INDEX users_id_idx ON users (id);")
+    c.execute("CREATE INDEX country_id_1_idx ON users (country_id);")
+
     c.execute("INSERT INTO users VALUES (1, 'Jenci Anshel', 1)")
     c.execute("INSERT INTO users VALUES (2, 'Jory Divina', 2)")
     c.execute("INSERT INTO users VALUES (3, 'Mateo Heidi', 2)")
@@ -46,6 +51,10 @@ def init(conn):
               "id INTEGER PRIMARY KEY, "
               "sku TEXT, "
               "name TEXT)")
+
+    # items are selected by the id, an index must be created
+    c.execute("CREATE INDEX items_id_idx ON items (id);")
+
     c.execute("INSERT INTO items VALUES (1, 'jeab', 'Jeans - black')")
     c.execute("INSERT INTO items VALUES (2, 'jeap', 'Jeans - pink')")
     c.execute("INSERT INTO items VALUES (3, 'shor', 'Shoes - red')")
@@ -61,6 +70,9 @@ def init(conn):
               "datetime STRING, "
               "FOREIGN KEY(user_id) REFERENCES users(id), "
               "FOREIGN KEY(item_id) REFERENCES items(id))")
+    c.execute("CREATE INDEX orders_id_idx ON orders (id);")
+    c.execute("CREATE INDEX user_id_1_idx ON orders (user_id);")
+    c.execute("CREATE INDEX item_id_1_idx ON orders (item_id);")
     c.execute("INSERT INTO orders VALUES (1, 1, 1, '2017-01-02 11:34:59')")
     c.execute("INSERT INTO orders VALUES (2, 1, 3, '2017-01-09 18:02:06')")
     c.execute("INSERT INTO orders VALUES (3, 1, 5, '2017-01-14 21:38:19')")
@@ -87,11 +99,21 @@ def query_users_from_mx_with_black_jeans(conn):
     1. Modify the following query to return the list of names of Mexican users having bought black jeans
     """
     c = conn.cursor()
-    c.execute("""
 
-    SELECT 1
+    item_id = 1  # Jeans - black
+    country_id = 2  # Mexico
 
-    """)
+    sql = """
+        SELECT DISTINCT users.id, users.name
+        FROM users
+        INNER JOIN orders ON users.id = orders.user_id
+        INNER JOIN items ON items.id = orders.item_id
+        INNER JOIN countries ON countries.id = users.country_id
+        WHERE items.id == {item_id} AND countries.id == {country_id}
+        ORDER BY users.name
+    """.format(item_id=item_id, country_id=country_id)
+
+    c.execute(sql)
     return c.fetchall()
 
 
@@ -102,7 +124,13 @@ def query_users_who_bought_nothing(conn):
     c = conn.cursor()
     c.execute("""
 
-    SELECT 1
+        SELECT DISTINCT users.id, users.name, countries.name
+        FROM users
+        LEFT JOIN orders ON users.id = orders.user_id
+        LEFT JOIN items ON items.id = orders.item_id
+        LEFT JOIN countries ON countries.id = users.country_id
+        WHERE items.id is null
+        ORDER BY users.id, users.name, countries.name
 
     """)
     return c.fetchall()
